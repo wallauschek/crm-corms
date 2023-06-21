@@ -1,12 +1,10 @@
-export default function Layout({
-      children,
-    }: {
-      children: React.ReactNode,
-    }) {
-      return (
-        <section>
-          <nav></nav>
-          {children}
-        </section>
-      );
-    }
+import { ReactNode } from 'react'
+
+export default function Layout({ children }: { children: ReactNode }) {
+  return (
+    <section>
+      <nav></nav>
+      {children}
+    </section>
+  )
+}
