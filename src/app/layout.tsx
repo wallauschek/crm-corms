@@ -1,4 +1,11 @@
 import './globals.css'
+
+//theme
+import "primereact/resources/themes/vela-blue/theme.css";
+
+//core
+import "primereact/resources/primereact.min.css";
+
 import { Inter } from 'next/font/google'
 
 const inter = Inter({ subsets: ['latin'] })
