@@ -1,5 +1,11 @@
 'use client'
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { observer } from 'mobx-react-lite'
 import { FieldValues, SubmitHandler, useForm } from 'react-hook-form'
+
+import formAdmissaoStore from '@/store/formAdmissaoStore'
+
 import { InputText } from 'primereact/inputtext'
 import { Button } from 'primereact/button'
 import { Steps } from 'primereact/steps'
@@ -7,7 +13,6 @@ import { MenuItem } from 'primereact/menuitem'
 import { Dropdown } from 'primereact/dropdown'
 import { InputMask } from 'primereact/inputmask'
 import { MultiSelect } from 'primereact/multiselect'
-import { useState } from 'react'
 
 interface Serie {
   name: string
@@ -24,12 +29,20 @@ interface Option {
   segmentos: Segmento[]
 }
 
-export default function Responsavel() {
+const FormAdmissao = observer(() => {
   const { register, handleSubmit, setValue, watch } = useForm()
+  const router = useRouter()
+
+  const isFormValid =
+    watch('nomeCandidato') &&
+    watch('dataNascimentoCandidato') &&
+    watch('escolaAtualCandidato') &&
+    watch('situacaoCandidato')
 
   const [selectedUnidade, setSelectedUnidade] = useState(null) as any
   const [selectedSegmento, setSelectedSegmento] = useState(null) as any
   const [selectedSerie, setSelectedSerie] = useState(null) as any
+  const [novoCandidato, setNovoCandidato] = useState(false)
 
   const options = [
     {
@@ -178,6 +191,37 @@ export default function Responsavel() {
     },
   ]
 
+  const situacoesCandidato = [
+    {
+      name: 'É filho(a) de colaborador do CEL Intercultural School.',
+      code: 'É filho(a) de colaborador do CEL Intercultural School.',
+    },
+    {
+      name: 'Possui irmão atualmente matriculado no CEL Intercultural School.',
+      code: 'Possui irmão atualmente matriculado no CEL Intercultural School.',
+    },
+    {
+      name: 'É filho(a) de ex-aluno do CEL Intercultural School.',
+      code: 'É filho(a) de ex-aluno do CEL Intercultural School.',
+    },
+    {
+      name: 'É filho(a) de colaborador do CEL Intercultural School?',
+      code: 'É filho(a) de colaborador do CEL Intercultural School?',
+    },
+    {
+      name: 'Possui irmão atualmente matriculado no CEL Intercultural School?',
+      code: 'Possui irmão atualmente matriculado no CEL Intercultural School?',
+    },
+    {
+      name: 'É filho(a) de ex-aluno do CEL Intercultural School?',
+      code: 'É filho(a) de ex-aluno do CEL Intercultural School?',
+    },
+    {
+      name: 'Não se encaixa em nenhuma das opções.',
+      code: 'Não se encaixa em nenhuma das opções.',
+    },
+  ]
+
   const unidades = options.map((option) => ({
     name: option.name,
     code: option.code,
@@ -214,49 +258,27 @@ export default function Responsavel() {
           ) || []
       : []
 
-  const situacoesCandidato = [
-    {
-      name: 'É filho(a) de colaborador do CEL Intercultural School.',
-      code: 'É filho(a) de colaborador do CEL Intercultural School.',
-    },
-    {
-      name: 'Possui irmão atualmente matriculado no CEL Intercultural School.',
-      code: 'Possui irmão atualmente matriculado no CEL Intercultural School.',
-    },
-    {
-      name: 'É filho(a) de ex-aluno do CEL Intercultural School.',
-      code: 'É filho(a) de ex-aluno do CEL Intercultural School.',
-    },
-    {
-      name: 'É filho(a) de colaborador do CEL Intercultural School?',
-      code: 'É filho(a) de colaborador do CEL Intercultural School?',
-    },
-    {
-      name: 'Possui irmão atualmente matriculado no CEL Intercultural School?',
-      code: 'Possui irmão atualmente matriculado no CEL Intercultural School?',
-    },
-    {
-      name: 'É filho(a) de ex-aluno do CEL Intercultural School?',
-      code: 'É filho(a) de ex-aluno do CEL Intercultural School?',
-    },
-    {
-      name: 'Não se encaixa em nenhuma das opções.',
-      code: 'Não se encaixa em nenhuma das opções.',
-    },
-  ]
-
   const onSubmit: SubmitHandler<FieldValues> = (data, event) => {
-    event?.preventDefault()
-    const candidato = {
-      nomeCandidato: data.nomeCandidato,
-      dataNascimentoCandidato: data.dataNascimentoCandidato,
-      unidadeCandidato: selectedUnidade.name,
-      segmentoCandidato: selectedSegmento.name,
-      seriecandidato: selectedSerie.name,
-      escolaAtualCandidato: data.escolaAtualCandidato,
-      situacaoCandidato: data.situacaoCandidato,
+    if (isFormValid) {
+      event?.preventDefault()
+      const candidato = {
+        nomeCandidato: data.nomeCandidato,
+        dataNascimentoCandidato: data.dataNascimentoCandidato,
+        unidadeCandidato: selectedUnidade.name,
+        segmentoCandidato: selectedSegmento.name,
+        serieCandidato: selectedSerie.name,
+        escolaAtualCandidato: data.escolaAtualCandidato,
+        situacaoCandidato: data.situacaoCandidato,
+      }
+      formAdmissaoStore.addCandidato(candidato)
+      if (novoCandidato) {
+        router.push('/processo-admissao/candidatos')
+      } else {
+        router.push('/processo-admissao/confirmacao')
+      }
+    } else {
+      router.push('/processo-admissao/confirmacao')
     }
-    console.log('🚀 ~ file: page.tsx:257 ~ Responsavel ~ candidato:', candidato)
   }
 
   const items: MenuItem[] = [
@@ -267,6 +289,10 @@ export default function Responsavel() {
     {
       label: 'Candidatos',
       url: '/processo-admissao/candidatos',
+    },
+    {
+      label: 'Confirmação',
+      url: '/processo-admissao/confirmacao',
     },
   ]
 
@@ -394,28 +420,36 @@ export default function Responsavel() {
         </div>
 
         <div className="mt-8">
-          <Button
-            type="submit"
-            id="add-candidate-btn"
-            onClick={() => {
-              console.log(
-                '🚀 ~ file: page.tsx:257 ~ Responsavel ~ Adiciona candidato',
-              )
-            }}
-          >
-            Adicionar novo candidato
-          </Button>
-          <Button
-            type="submit"
-            className="p-button-success justify-center"
-            onClick={() => {
-              console.log('🚀 ~ file: page.tsx:257 ~ Responsavel ~ Concluir')
-            }}
-          >
-            Concluir
-          </Button>
+          <div className="mt-8" style={{ display: 'flex' }}>
+            <Button
+              type="submit"
+              id="add-candidate-btn"
+              onClick={() => {
+                setNovoCandidato(true)
+              }}
+              disabled={!isFormValid}
+              style={{ flex: 1 }}
+            >
+              Adicionar novo candidato
+            </Button>
+            <Button
+              type="submit"
+              className="p-button-success justify-center"
+              onClick={() => {
+                setNovoCandidato(false)
+              }}
+              disabled={
+                !isFormValid && formAdmissaoStore.candidatos.length === 0
+              }
+              style={{ flex: 1 }}
+            >
+              Concluir
+            </Button>
+          </div>
         </div>
       </form>
     </div>
   )
-}
+})
+
+export default FormAdmissao

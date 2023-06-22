@@ -1,17 +1,32 @@
 'use client'
+import { observer } from 'mobx-react-lite'
+import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
+
+import formAdmissaoStore from '@/store/formAdmissaoStore'
+
 import { InputText } from 'primereact/inputtext'
 import { InputMask } from 'primereact/inputmask'
 import { Button } from 'primereact/button'
 import { Steps } from 'primereact/steps'
 import { MenuItem } from 'primereact/menuitem'
 
-export default function Responsavel() {
-  const { register, handleSubmit } = useForm()
+const FormAdmissao = observer(() => {
+  const { register, handleSubmit, watch } = useForm()
+  const router = useRouter()
+
+  const isFormValid =
+    watch('cpfResponsavel') &&
+    watch('nomeResponsavel') &&
+    watch('emailResponsavel') &&
+    watch('telefoneResponsavel') &&
+    watch('enderecoResponsavel') &&
+    watch('motivoEscolhaResponsavel')
 
   const onSubmit = (data: any) => {
     console.log(JSON.stringify(data, null, 2))
-    // Aqui você pode enviar os dados para o servidor ou manipulá-los de alguma forma
+    formAdmissaoStore.setResponsavel(data)
+    router.push('/processo-admissao/candidatos')
   }
 
   const items: MenuItem[] = [
@@ -22,6 +37,10 @@ export default function Responsavel() {
     {
       label: 'Candidatos',
       url: '/processo-admissao/candidatos',
+    },
+    {
+      label: 'Confirmação',
+      url: '/processo-admissao/confirmacao',
     },
   ]
 
@@ -103,11 +122,13 @@ export default function Responsavel() {
         <div className="mt-8">
           <span className="p-float-label">
             <InputText
-              id="motivoEscolha"
-              {...register('motivoEscolha')}
+              id="motivoEscolhaResponsavel"
+              {...register('motivoEscolhaResponsavel')}
               className="w-full"
             />
-            <label htmlFor="motivoEscolha">Motivo da escolha pelo CEL</label>
+            <label htmlFor="motivoEscolhaResponsavel">
+              Motivo da escolha pelo CEL
+            </label>
           </span>
         </div>
 
@@ -115,6 +136,7 @@ export default function Responsavel() {
           <Button
             type="submit"
             className="p-button-success w-full justify-center"
+            disabled={!isFormValid}
           >
             Avançar
           </Button>
@@ -122,4 +144,6 @@ export default function Responsavel() {
       </form>
     </div>
   )
-}
+})
+
+export default FormAdmissao
